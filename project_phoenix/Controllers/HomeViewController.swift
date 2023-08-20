@@ -9,6 +9,8 @@ import UIKit
 
 class HomeViewController: UIViewController {
     
+    let sectionTitles: [String] = ["Trending Movies", "TV Series" , "Popular", "Upcoming Movies", "Top Rated"]
+    
     private let homeFeedTable: UITableView = {
         let table = UITableView(frame: .zero, style: .grouped)
         table.register(CollectionViewTableViewCell.self,
@@ -29,10 +31,10 @@ class HomeViewController: UIViewController {
         configureNavbar()
         
         let headerView = HeroHeaderUIView(
-            frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 500)
+            frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 450)
         )
-        
         homeFeedTable.tableHeaderView = headerView
+//        fetchData()
     }
     
     private func configureNavbar(){
@@ -66,8 +68,19 @@ class HomeViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         homeFeedTable.frame = view.bounds // tablonun boyutu tam ekran
-        
     }
+    
+//    private func fetchData(){
+//        APICaller.shared.getTrendingMovies {
+//            result in
+//            switch result {
+//            case .success(let movies):
+//                print(movies)
+//            case .failure(let error):
+//                print(error)
+//            }
+//        }
+//    }
     
     /*
     // MARK: - Navigation
@@ -84,7 +97,7 @@ class HomeViewController: UIViewController {
 extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 20
+        return sectionTitles.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -96,6 +109,15 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
                                                        for: indexPath) as? CollectionViewTableViewCell else {
             return UITableViewCell()
         }
+        APICaller.shared.getTrendingMovies {
+            result in
+            switch result {
+            case .success(let movies):
+                cell.configure(with: movies)
+            case .failure(let error):
+                print(String(describing: error))
+            }
+        }
         return cell
     }
     
@@ -105,6 +127,17 @@ extension HomeViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 40
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return sectionTitles[section]
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        guard let header = view as? UITableViewHeaderFooterView else {return}
+        header.textLabel?.font = .systemFont(ofSize: 16, weight: .semibold)
+        header.textLabel?.frame = CGRect(x: header.bounds.origin.x + 20, y: header.bounds.origin.y, width: header.bounds.width, height: header.bounds.height)
+        header.textLabel?.text = header.textLabel?.text?.capitalizeFirstLetter()
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
